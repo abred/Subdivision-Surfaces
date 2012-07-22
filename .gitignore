@@ -27,6 +27,7 @@ bin
 ipch
 GeneratedFiles
 repo
+glm
 
 # other Visual Studio generated stuff #
 ######################################

@@ -15,7 +15,9 @@ INCLUDEPATH += ../include/ /usr/include/ /usr/local/include /opt/AMDAPP/include/
 LIBS =  -L/home/abred/qtDebug/lib/ -L/usr/lib64/ -L/usr/lib/ -L/usr/local/lib -L../lib -lGL -lGLEW -lIL
 
 # Input
-HEADERS += openGLQtContext.h
+HEADERS += openGLQtContext.h \
+		BzrFile.h
 		
 SOURCES += main.cpp \
-		openGLQtContext.cpp
+		openGLQtContext.cpp \
+		BzrFile.cpp
