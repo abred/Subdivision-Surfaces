@@ -1,6 +1,6 @@
 #version 400
 
-layout(vertices = 32) out;
+layout(vertices = 16) out;
 
 
 in vec4 vColor[];

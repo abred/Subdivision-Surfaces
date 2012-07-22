@@ -1,8 +1,5 @@
 #include "openGLQtContext.h"
 
-
-#include "gumbo.h"
-
 //
 //readTextFile
 //
@@ -207,6 +204,7 @@ void OpenGLQtContext::initMatrices()
 		GLuint normalMatrixLocation_ = glGetUniformLocation(shaderID_[i], "normalMatrix");
 		glUniformMatrix4fv(normalMatrixLocation_, 1, GL_FALSE, &normalMatrix_[0][0]); 
 	}
+
 }
 //
 
@@ -220,6 +218,11 @@ void OpenGLQtContext::initStuff()
 
 	mesh_ = new BzrFile("mesh/testmonster.bzr");
 	
+//	for (unsigned int i = 0; i < mesh_->m_vertexCount; i += 1)
+//	{
+//		std::cout << mesh_->m_vertices[i].x << " " << mesh_->m_vertices[i].y << " " << mesh_->m_vertices[i].z << "      " << mesh_->m_valences[i] << "\n";
+//	}
+	
 	std::cout << 
 	"Mesh:\n" << 
 	"regPatchCount " << mesh_->regularPatchCount() << 
@@ -232,6 +235,7 @@ void OpenGLQtContext::initStuff()
 //	"\ntes " << mesh_->m_triPatches <<
 	"\n";
 	
+
 	ilInit();
 	GLuint texTmp;
 	ilGenImages(1, &texTmp);
@@ -344,6 +348,7 @@ void OpenGLQtContext::initStuff()
 		glUniform3fv(glGetUniformLocation(shaderID_[i], "specularMaterial"), 1, &specularMat[0]);
 		glUniform1f(glGetUniformLocation(shaderID_[i], "shininess"), shininess);
 	}
+
 	
 	std::vector<glm::vec2> vertices;
 	{
@@ -382,47 +387,88 @@ void OpenGLQtContext::initStuff()
 	std::cout << "#indices: " << indices.size() << std::endl;
 	
 	glGenVertexArrays(1, &vao_);
-//	glGenBuffers(1, &vBuf_);
-//	glGenBuffers(1, &cBuf_);
-//	glGenBuffers(1, &tBuf_);
+	glGenBuffers(1, &vBuf_);
+	glGenBuffers(1, &cBuf_);
+	glGenBuffers(1, &tBuf_);
 //	glGenBuffers(1, &iBuf_);
 
 	glBindVertexArray(vao_);
 	{	
-//		glBindBuffer(GL_ARRAY_BUFFER, vBuf_);
-//		glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(GLfloat) * vertices.size(), &(vertices[0]), GL_STATIC_DRAW);
-//		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-//		glEnableVertexAttribArray(0);
-//	
-//		glBindBuffer(GL_ARRAY_BUFFER, cBuf_);
-//		glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(GLfloat) * colors.size(), &(colors[0]), GL_STATIC_DRAW);
-//		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-//		glEnableVertexAttribArray(1);
-//		
-//		glBindBuffer(GL_ARRAY_BUFFER, tBuf_);
-//		glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(GLfloat) * texCoord.size(), &(texCoord[0]), GL_STATIC_DRAW);
-//		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-//		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, vBuf_);
+		glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(GLfloat) * vertices.size(), &(vertices[0]), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+	
+		glBindBuffer(GL_ARRAY_BUFFER, cBuf_);
+		glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(GLfloat) * colors.size(), &(colors[0]), GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
 		
+		glBindBuffer(GL_ARRAY_BUFFER, tBuf_);
+		glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(GLfloat) * texCoord.size(), &(texCoord[0]), GL_STATIC_DRAW);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(2);
+	}
+	glBindVertexArray(0);
+	
+	
+	glGenVertexArrays(1, &vaoMesh_);
+	glGenBuffers(1, &vBufMesh_);
+	glGenBuffers(1, &iBufMesh_);
+	
+	glBindVertexArray(vaoMesh_);
+	{	
+		vBufMesh_ = mesh_->createMeshVertexBuffer();
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
 		
-//		vBuf_ = mesh_->createRegularBezierControlPointVertexBuffer();
-//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-//		glEnableVertexAttribArray(0);
-//		
-//		
-//		tBuf_ = mesh_->createRegularTexCoordVertexBuffer();
-//		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-//		glEnableVertexAttribArray(2);
-
-		vBuf_ = mesh_->createMeshVertexBuffer();
+		iBufMesh_ = mesh_->createMeshIndexBuffer();
+	}
+	glBindVertexArray(0);
+		
+	
+	glGenVertexArrays(3, vaoSurf_);
+	glGenBuffers(3, vBufSurf_);
+	glGenBuffers(3, tBufSurf_);
+	
+	glBindVertexArray(vaoSurf_[0]);
+	{	
+		vBufSurf_[0] = mesh_->createRegularBezierControlPointVertexBuffer();
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(0);
 		
 		
-		iBuf_ = mesh_->createMeshIndexBuffer();
+		tBufSurf_[0] = mesh_->createRegularTexCoordVertexBuffer();
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(2);
 	}
 	glBindVertexArray(0);
 	
+	glBindVertexArray(vaoSurf_[1]);
+	{	
+		vBufSurf_[1] = mesh_->createQuadBezierControlPointVertexBuffer();
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+		
+		
+		tBufSurf_[1] = mesh_->createQuadTexCoordVertexBuffer();
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(2);
+	}
+	glBindVertexArray(0);
+	
+	glBindVertexArray(vaoSurf_[2]);
+	{	
+		vBufSurf_[2] = mesh_->createTriangleGregoryControlPointVertexBuffer();
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+		
+		
+		tBufSurf_[2] = mesh_->createTriangleTexCoordVertexBuffer();
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(2);
+	}
+	glBindVertexArray(0);
 }
 //
 
@@ -438,72 +484,117 @@ void OpenGLQtContext::initShader()
 //	timerSinceLastFrame_.start();
 
 
-	std::string const SHADER_PREFIX[NUMBEROFSHADER] = {"shader/reg/reg", 
-					      "shader/quad/quad", 
-					      "shader/tri/tri"};
+	std::string const SHADER_PREFIX[NUMBEROFSHADER] = {"shader/reg/regSubsurf", 
+					      "shader/quad/quadSubsurf", 
+					      "shader/tri/triSubsurf",
+					      "shader/mesh/meshSubsurf",
+					      "shader/singleQuad/quad"};
 
 	for (unsigned int i = 0; i < NUMBEROFSHADER; ++i)
 	{
-		std::string const vsFile(SHADER_PREFIX[i] + "Subsurf.vert");
-		std::string const tcFile(SHADER_PREFIX[i] + "Subsurf.cont");
-		std::string const teFile(SHADER_PREFIX[i] + "Subsurf.eval");
-		std::string const gsFile(SHADER_PREFIX[i] + "Subsurf.geom");
-		std::string const fsFile(SHADER_PREFIX[i] + "Subsurf.frag");
-		
-//		std::string const vsFile(SHADER_PREFIX + "tess.vert");
-//		std::string const tcFile(SHADER_PREFIX + "tess.cont");
-//		std::string const teFile(SHADER_PREFIX + "tess.eval");
-//		std::string const gsFile(SHADER_PREFIX + "tess.geom");
-//		std::string const fsFile(SHADER_PREFIX + "tess.frag");
-	
-		shaderID_[i] = glCreateProgram();
+		if (i == NUMBEROFSHADER-2)
 		{
-			GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-			const char* vsSource = readTextFile(vsFile);
-	
-			GLuint tessControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
-			const char* tcSource = readTextFile(tcFile);
+			std::string const vsFile(SHADER_PREFIX[i] + ".vert");
+			std::string const gsFile(SHADER_PREFIX[i] + ".geom");
+			std::string const fsFile(SHADER_PREFIX[i] + ".frag");
 		
-			GLuint tessEvalShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
-			const char* teSource = readTextFile(teFile);
+			shaderID_[i] = glCreateProgram();
+			{
+				GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+				const char* vsSource = readTextFile(vsFile);
 		
-			GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
-			const char* gsSource = readTextFile(gsFile);
+				GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+				const char* gsSource = readTextFile(gsFile);
 		
-			GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-			const char* fsSource = readTextFile(fsFile);
+				GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+				const char* fsSource = readTextFile(fsFile);
 
 
-			glShaderSource(vertexShader, 1, &vsSource, nullptr);
-			glCompileShader(vertexShader);
+				glShaderSource(vertexShader, 1, &vsSource, nullptr);
+				glCompileShader(vertexShader);
 		
-			glShaderSource(tessControlShader, 1, &tcSource, nullptr);
-			glCompileShader(tessControlShader);
-		
-			glShaderSource(tessEvalShader, 1, &teSource, nullptr);
-			glCompileShader(tessEvalShader);
-		
-			glShaderSource(geometryShader, 1, &gsSource, nullptr);
-			glCompileShader(geometryShader);
+				glShaderSource(geometryShader, 1, &gsSource, nullptr);
+				glCompileShader(geometryShader);
 	
-			glShaderSource(fragmentShader, 1, &fsSource, nullptr);
-			glCompileShader(fragmentShader);
+				glShaderSource(fragmentShader, 1, &fsSource, nullptr);
+				glCompileShader(fragmentShader);
 	
-			glAttachShader(shaderID_[i], vertexShader);
-			glAttachShader(shaderID_[i], tessControlShader);
-			glAttachShader(shaderID_[i], tessEvalShader);
-			glAttachShader(shaderID_[i], geometryShader);
-			glAttachShader(shaderID_[i], fragmentShader);
+				glAttachShader(shaderID_[i], vertexShader);
+				glAttachShader(shaderID_[i], geometryShader);
+				glAttachShader(shaderID_[i], fragmentShader);
 		
-			glLinkProgram(shaderID_[i]);
+				glLinkProgram(shaderID_[i]);
 		
-			glDeleteShader(vertexShader);
-			glDeleteShader(tessControlShader);
-			glDeleteShader(tessEvalShader);
-			glDeleteShader(geometryShader);
-			glDeleteShader(fragmentShader);
+				glDeleteShader(vertexShader);
+				glDeleteShader(geometryShader);
+				glDeleteShader(fragmentShader);
 		
-			glUseProgram(shaderID_[i]);
+				glUseProgram(shaderID_[i]);
+			}
+		}
+		else
+		{
+			std::string const vsFile(SHADER_PREFIX[i] + ".vert");
+			std::string const tcFile(SHADER_PREFIX[i] + ".cont");
+			std::string const teFile(SHADER_PREFIX[i] + ".eval");
+			std::string const gsFile(SHADER_PREFIX[i] + ".geom");
+			std::string const fsFile(SHADER_PREFIX[i] + ".frag");
+		
+	//		std::string const vsFile(SHADER_PREFIX + "tess.vert");
+	//		std::string const tcFile(SHADER_PREFIX + "tess.cont");
+	//		std::string const teFile(SHADER_PREFIX + "tess.eval");
+	//		std::string const gsFile(SHADER_PREFIX + "tess.geom");
+	//		std::string const fsFile(SHADER_PREFIX + "tess.frag");
+	
+			shaderID_[i] = glCreateProgram();
+			{
+				GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+				const char* vsSource = readTextFile(vsFile);
+	
+				GLuint tessControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
+				const char* tcSource = readTextFile(tcFile);
+		
+				GLuint tessEvalShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
+				const char* teSource = readTextFile(teFile);
+		
+				GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+				const char* gsSource = readTextFile(gsFile);
+		
+				GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+				const char* fsSource = readTextFile(fsFile);
+
+
+				glShaderSource(vertexShader, 1, &vsSource, nullptr);
+				glCompileShader(vertexShader);
+		
+				glShaderSource(tessControlShader, 1, &tcSource, nullptr);
+				glCompileShader(tessControlShader);
+		
+				glShaderSource(tessEvalShader, 1, &teSource, nullptr);
+				glCompileShader(tessEvalShader);
+		
+				glShaderSource(geometryShader, 1, &gsSource, nullptr);
+				glCompileShader(geometryShader);
+	
+				glShaderSource(fragmentShader, 1, &fsSource, nullptr);
+				glCompileShader(fragmentShader);
+	
+				glAttachShader(shaderID_[i], vertexShader);
+				glAttachShader(shaderID_[i], tessControlShader);
+				glAttachShader(shaderID_[i], tessEvalShader);
+				glAttachShader(shaderID_[i], geometryShader);
+				glAttachShader(shaderID_[i], fragmentShader);
+		
+				glLinkProgram(shaderID_[i]);
+		
+				glDeleteShader(vertexShader);
+				glDeleteShader(tessControlShader);
+				glDeleteShader(tessEvalShader);
+				glDeleteShader(geometryShader);
+				glDeleteShader(fragmentShader);
+		
+				glUseProgram(shaderID_[i]);
+			}
 		}
 	}
 		
@@ -519,24 +610,62 @@ void OpenGLQtContext::initShader()
 //
 void OpenGLQtContext::paintGL()
 {	
-	// buffer leeren
+	// clear buffer
    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-
-	glBindVertexArray(vao_);
-	glPatchParameteri(GL_PATCH_VERTICES, 32);
 	
-	// needed without Control Shader
-//	glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &glm::vec2(16.f)[0]);
-//	glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &glm::vec4(16.f)[0]);
+	
+	switch (next_)
+	{
+		case 0:
+			glBindVertexArray(vaoSurf_[0]);
+			{
+				glUseProgram(shaderID_[0]);
+				glPatchParameteri(GL_PATCH_VERTICES, 16);
+	
+				// needed without Control Shader
+				// glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &glm::vec2(16.f)[0]);
+				// glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &glm::vec4(16.f)[0]);
 
-	glDrawElements(GL_PATCHES, mesh_->indexCount(), GL_UNSIGNED_INT, nullptr);
-//	int vertCount = sizeof(PatchData) / (sizeof(float) * 3);
-//	glDrawArrays(GL_PATCHES, 0, mesh_->indexCount());
-//	glDrawElements(GL_LINE_STRIP, 5, GL_UNSIGNED_INT, nullptr);
+				glDrawArrays(GL_PATCHES, 0, 16 * mesh_->regularPatchCount());
+			}
+			glBindVertexArray(vaoSurf_[1]);
+			{
+				glUseProgram(shaderID_[1]);
+				glPatchParameteri(GL_PATCH_VERTICES, 32);
+	
+				glDrawArrays(GL_PATCHES, 0, 32 * mesh_->quadPatchCount());
+			}	
+			glBindVertexArray(vaoSurf_[2]);
+			{
+				glUseProgram(shaderID_[2]);
+				glPatchParameteri(GL_PATCH_VERTICES, 15);
+		
+				glDrawArrays(GL_PATCHES, 0, 15 * mesh_->trianglePatchCount());
+			}
+			break;
+			
+		case 1:
+			// untesselated polygonmesh
+			glBindVertexArray(vaoMesh_);
+			{
+				glUseProgram(shaderID_[3]);
+				glDrawElements(GL_TRIANGLES, mesh_->indexCount(), GL_UNSIGNED_INT, nullptr);
+			}
+			break;
+		case 2:	
+			// single tesselated quad
+			glBindVertexArray(vao_);
+			{
+				glUseProgram(shaderID_[4]);
+				glPatchParameteri(GL_PATCH_VERTICES, 4);
+				glDrawArrays(GL_PATCHES, 0, 4);
+			}
+			break;
+	}
+
+	glBindVertexArray(0);
 	
 //	++frameCount_;
-//	update();
 }
 //
 
@@ -559,6 +688,7 @@ void OpenGLQtContext::resizeGL(int width, int height)
 		GLuint mvpMatrixLocation_ = glGetUniformLocation(shaderID_[i], "MVP");
 		glUniformMatrix4fv(mvpMatrixLocation_, 1, GL_FALSE, &mvpMatrix_[0][0]);
 	}
+	
 }
 //
 
@@ -607,10 +737,14 @@ void OpenGLQtContext::keyPressEvent(QKeyEvent* event)
 		case Qt::Key_PageDown:
 					viewMatrix_ = glm::translate (glm::mat4(1.0f), glm::vec3 (0.0f, 0.0f, -1.0f)) * viewMatrix_;
 					break;
+					
+		case Qt::Key_N:
+					next_ = (next_+1) % 3;
+					break;
+					
 	default:		
 		std::cout << "QGL: Key nicht belegt" << std::endl;
 	}
-
 
 	
 	modelViewMatrix_ = viewMatrix_ * modelMatrix_;
@@ -622,7 +756,6 @@ void OpenGLQtContext::keyPressEvent(QKeyEvent* event)
 		GLuint mvpMatrixLocation_ = glGetUniformLocation(shaderID_[i], "MVP");
 		glUniformMatrix4fv(mvpMatrixLocation_, 1, GL_FALSE, &mvpMatrix_[0][0]); 
 	}
-	
 	update();
 }
 //
@@ -670,6 +803,8 @@ void OpenGLQtContext::mouseMoveEvent(QMouseEvent *event)
 		GLuint mvpMatrixLocation_ = glGetUniformLocation(shaderID_[i], "MVP");
 		glUniformMatrix4fv(mvpMatrixLocation_, 1, GL_FALSE, &mvpMatrix_[0][0]); 
 	}
+
+
 	lastPos_ = event->pos();
 	
 	update();

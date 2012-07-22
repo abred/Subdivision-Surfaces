@@ -2,7 +2,7 @@
 #define __OPENGLQTCONTEXT_H__
 
 #define BUFFER_OFFSET(i) ((char*) NULL + (i))
-#define NUMBEROFSHADER 3
+#define NUMBEROFSHADER 5
 
 
 #include <iostream>
@@ -70,7 +70,15 @@ class OpenGLQtContext : public QGLWidget
 		GLuint    	vBuf_;
 		GLuint    	tBuf_;
 		GLuint    	cBuf_;
-		GLuint    	iBuf_;
+//		GLuint    	iBuf_;
+		
+		GLuint    	vaoMesh_;
+		GLuint    	vBufMesh_;
+		GLuint    	iBufMesh_;
+		
+		GLuint    	vaoSurf_[3];
+		GLuint    	vBufSurf_[3];
+		GLuint    	tBufSurf_[3];
 
 
 		QPoint 	  	lastPos_;
@@ -82,6 +90,8 @@ class OpenGLQtContext : public QGLWidget
 		GLuint    	displacementMap_;
 		GLuint    	refPosMap_;
 		GLuint    	refNormalMap_;
+		
+		GLuint    	next_ = 0;
 		
 
 //	public slots:
