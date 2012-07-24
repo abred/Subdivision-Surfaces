@@ -1,52 +1,145 @@
 #version 400
 
-layout(quads, equal_spacing, ccw) in;
+layout(triangles, equal_spacing, ccw) in;
 
+precise in vec2 tcTexCoord[];
 
-uniform mat4 MVP;
-uniform mat4 MV;
+precise out vec2 teTexCoord;
+precise out vec2 teSTexCoord;
+out vec4 teNormal;
 
-in vec4 tcColor[];
-in vec2 tcTexCoord[];
+precise gl_Position;
 
-
-out vec4 teColor;
-out vec4 tePosition;
-out vec2 teTexCoord;
-
-vec4 interpolate(in vec4 v0, in vec4 v1, in vec4 v2, in vec4 v3)
+void EvaluateGregoryTriangleSurface(precise out vec4 pos, precise out vec4 norm)
 {
-	vec4 a = mix(v0, v1, gl_TessCoord.x);
-	vec4 b = mix(v3, v2, gl_TessCoord.x);
-	return mix(a, b, gl_TessCoord.y);
+	precise vec3 C0, C1, C2;
+	float u, v, w;
+	u = gl_TessCoord.x; 
+	v = gl_TessCoord.y; 
+	w = gl_TessCoord.z; 
+//	w = 1 - u - v;
+
+	float d0 = (v + u) <= 0.00001 ? 1.0 : (v + u); 
+	float d1 = (w + v) <= 0.00001 ? 1.0 : (w + v); 
+	float d2 = (u + w )<= 0.00001 ? 1.0 : (u + w); 
+
+	C0 = (v * gl_in[1].gl_Position.xyz + u * gl_in[0].gl_Position.xyz) / d0;
+	C1 = (w * gl_in[5].gl_Position.xyz + v * gl_in[4].gl_Position.xyz) / d1;
+	C2 = (u * gl_in[3].gl_Position.xyz + w * gl_in[2].gl_Position.xyz) / d2;
+
+	precise vec3 q[15]; 
+	q[ 0] =        gl_in[ 6].gl_Position.xyz; 
+	q[ 1] = (      gl_in[ 6].gl_Position.xyz + 3.0 * gl_in[14].gl_Position.xyz) / 4.0;
+	q[ 2] = (      gl_in[14].gl_Position.xyz +       gl_in[13].gl_Position.xyz) / 2.0;
+	q[ 3] = (3.0 * gl_in[13].gl_Position.xyz +       gl_in[12].gl_Position.xyz) / 4.0;
+	q[ 4] =        gl_in[12].gl_Position.xyz;
+	q[ 5] = (3.0 * gl_in[ 7].gl_Position.xyz +       gl_in[ 6].gl_Position.xyz) / 4.0;
+	q[ 6] =        C0;
+	q[ 7] =        C1;
+	q[ 8] = (      gl_in[12].gl_Position.xyz + 3.0 * gl_in[11].gl_Position.xyz) / 4.0;
+	q[ 9] = (      gl_in[ 7].gl_Position.xyz +       gl_in[ 8].gl_Position.xyz) / 2.0;
+	q[10] =        C2;
+	q[11] = (      gl_in[11].gl_Position.xyz +       gl_in[10].gl_Position.xyz) / 2.0;
+	q[12] = (      gl_in[ 9].gl_Position.xyz + 3.0 * gl_in[ 8].gl_Position.xyz) / 4.0;
+	q[13] = (      gl_in[ 9].gl_Position.xyz + 3.0 * gl_in[10].gl_Position.xyz) / 4.0;
+	q[14] =        gl_in[ 9].gl_Position.xyz;
+	
+
+	precise vec3 s[15];
+
+	s[ 0] = u * q[ 0] + v * q[ 1] + w * q[ 5];
+	s[ 1] = u * q[ 1] + v * q[ 2] + w * q[ 6];
+	s[ 2] = u * q[ 2] + v * q[ 3] + w * q[ 7];
+	s[ 3] = u * q[ 3] + v * q[ 4] + w * q[ 8];
+	
+	s[ 4] = u * q[ 5] + v * q[ 6] + w * q[ 9];
+	s[ 5] = u * q[ 6] + v * q[ 7] + w * q[10];
+	s[ 6] = u * q[ 7] + v * q[ 8] + w * q[11];
+	
+	s[ 7] = u * q[ 9] + v * q[10] + w * q[12];
+	s[ 8] = u * q[10] + v * q[11] + w * q[13];
+	
+	s[ 9] = u * q[12] + v * q[13] + w * q[14];
+
+
+	q[0] = u * s[0] + v * s[1] + w * s[4];
+	q[1] = u * s[1] + v * s[2] + w * s[5];
+	q[2] = u * s[2] + v * s[3] + w * s[6];
+
+	q[3] = u * s[4] + v * s[5] + w * s[7];
+	q[4] = u * s[5] + v * s[6] + w * s[8];
+ 
+	q[5] = u * s[7] + v * s[8] + w * s[9]; 
+
+
+	s[0] = u * q[0] + v * q[1] + w * q[3];
+	s[1] = u * q[1] + v * q[2] + w * q[4];
+	 
+	s[2] = u * q[3] + v * q[4] + w * q[5]; 
+	
+	pos = vec4((u * s[0] + v * s[1] + w * s[2]), 1.0);
+	norm = vec4((normalize(cross(s[2] - s[0], s[1] - s[0]))), 0.0); 
 }
 
-vec2 interpolate2(in vec2 v0, in vec2 v1, in vec2 v2, in vec2 v3)
+precise vec2 evaluateTexCoord_Tri()
 {
-	vec2 a = mix(v0, v1, gl_TessCoord.x);
-	vec2 b = mix(v3, v2, gl_TessCoord.x);
-	return mix(a, b, gl_TessCoord.y);
+	return (gl_TessCoord.x * tcTexCoord[0] + 
+	        gl_TessCoord.y * tcTexCoord[4] + 
+	        gl_TessCoord.z * tcTexCoord[8]);
 }
 
-//void main()
-//{	
-//	gl_Position = interpolate(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_in[2].gl_Position, gl_in[3].gl_Position);
-//	teColor = interpolate(tcColor[0], tcColor[1], tcColor[2], tcColor[3]);
-//	teTexCoord = interpolate2(tcTexCoord[0], tcTexCoord[1], tcTexCoord[2], tcTexCoord[3]);
-//}
+precise vec2 seamlessTriangleTexcoordLerp()
+{
+	// Barycentric coordinates
+	float u = gl_TessCoord.x; 
+	float v = gl_TessCoord.y; 
+//	float w = gl_TessCoord.z; 
+	float w = 1 - u - v;
+
+	vec2 textureCoordinates[12];
+	
+	textureCoordinates[0]=tcTexCoord[0]; 
+	textureCoordinates[1]=tcTexCoord[2]; 
+	textureCoordinates[2]=tcTexCoord[1];
+	textureCoordinates[3]=tcTexCoord[3];
+	
+        textureCoordinates[4]=tcTexCoord[8]; 
+        textureCoordinates[5]=tcTexCoord[10]; 
+        textureCoordinates[6]=tcTexCoord[9]; 
+        textureCoordinates[7]=tcTexCoord[11];
+        
+        textureCoordinates[8]=tcTexCoord[4];
+        textureCoordinates[9]=tcTexCoord[6];
+        textureCoordinates[10]=tcTexCoord[5];
+        textureCoordinates[11]=tcTexCoord[7];
+        
+	// Texcoord indices
+	int bu = u <= 0.00001 ? 1 : 0;
+	int bv = v <= 0.00001 ? 1 : 0;
+	int bw = w <= 0.00001 ? 1 : 0;
+	
+	int iu = 2 * bv + bw;
+	int iv = 2 * bw + bu;
+	int iw = 2 * bu + bv;
+
+	// Interpolate
+	return u * textureCoordinates[0 + iu] + 
+	       v * textureCoordinates[4 + iv] +
+	       w * textureCoordinates[8 + iw];
+
+}
 
 void main()
 {
-	float u = gl_TessCoord.x, v = gl_TessCoord.y;
-	vec4 a = mix(gl_in[0].gl_Position, gl_in[3].gl_Position, u);
-	vec4 b = mix(gl_in[12].gl_Position, gl_in[15].gl_Position, u);
-	tePosition = mix(a, b, v);
-	gl_Position = MVP * tePosition;
-	tePosition = MV * tePosition;
-	teColor = interpolate(tcColor[0], tcColor[3], tcColor[12], tcColor[15]);
-//	teTexCoord = interpolate2(tcTexCoord[0], tcTexCoord[3], tcTexCoord[12], tcTexCoord[15]);
+	precise vec4 pos;
+	precise vec4 norm;
+	EvaluateGregoryTriangleSurface(pos, norm);
+	gl_Position = pos;
 	
-	vec2 c = mix(tcTexCoord[0], tcTexCoord[3], u);
-	vec2 d = mix(tcTexCoord[12], tcTexCoord[15], u);
-	teTexCoord = mix(c, d, v);
+	teTexCoord = evaluateTexCoord_Tri();
+	teSTexCoord = seamlessTriangleTexcoordLerp();
+	teNormal = norm;
 }
+
+
+

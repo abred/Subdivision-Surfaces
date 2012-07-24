@@ -334,6 +334,7 @@ GLuint BzrFile::createRegularBezierControlPointTextureBuffer() const
 {
 	return createControlPointBuffer(GL_TEXTURE_BUFFER, m_regularPatches.bezierControlPoints, m_regularPatchCount, 16);
 }
+
 GLuint BzrFile::createRegularTexCoordTextureBuffer() const
 {
 	return createControlPointTexBuffer(GL_TEXTURE_BUFFER, m_regularPatches.texcoords, m_regularPatchCount, 16);
@@ -343,14 +344,17 @@ GLuint BzrFile::createQuadBezierControlPointTextureBuffer() const
 {
 	return createControlPointBuffer(GL_TEXTURE_BUFFER, m_quadPatches.bezierControlPoints, m_quadPatchCount, 32);
 }
+
 GLuint BzrFile::createQuadGregoryControlPointTextureBuffer() const
 {
 	return createControlPointBuffer(GL_TEXTURE_BUFFER, m_quadPatches.gregoryControlPoints, m_quadPatchCount, 20);
 }
+
 GLuint BzrFile::createQuadPmControlPointTextureBuffer() const
 {
 	return createControlPointBuffer(GL_TEXTURE_BUFFER, m_quadPatches.pmControlPoints, m_quadPatchCount, 24);
 }
+
 GLuint BzrFile::createQuadTexCoordTextureBuffer() const
 {
 	return createControlPointTexBuffer(GL_TEXTURE_BUFFER, m_quadPatches.texcoords, m_quadPatchCount, 16);
@@ -360,20 +364,26 @@ GLuint BzrFile::createTriangleGregoryControlPointTextureBuffer() const
 {
 	return createControlPointBuffer(GL_TEXTURE_BUFFER, m_triPatches.gregoryControlPoints, m_triPatchCount, 15);
 }
+
 GLuint BzrFile::createTrianglePmControlPointTextureBuffer() const
 {
 	return createControlPointBuffer(GL_TEXTURE_BUFFER, m_triPatches.pmControlPoints, m_triPatchCount, 19);
 }
+
 GLuint BzrFile::createTriangleTexCoordTextureBuffer() const
 {
 	return createControlPointTexBuffer(GL_TEXTURE_BUFFER, m_triPatches.texcoords, m_triPatchCount, 12);
 }
+
+
+
 
 // Control points as vertex buffers
 GLuint BzrFile::createRegularBezierControlPointVertexBuffer() const
 {
 	return createControlPointBuffer(GL_ARRAY_BUFFER, m_regularPatches.bezierControlPoints, m_regularPatchCount, 16);
 }
+
 GLuint BzrFile::createRegularTexCoordVertexBuffer() const
 {
 	return createControlPointTexBuffer(GL_ARRAY_BUFFER, m_regularPatches.texcoords, m_regularPatchCount, 16);
@@ -383,29 +393,139 @@ GLuint BzrFile::createQuadBezierControlPointVertexBuffer() const
 {
 	return createControlPointBuffer(GL_ARRAY_BUFFER, m_quadPatches.bezierControlPoints, m_quadPatchCount, 32);
 }
+
 GLuint BzrFile::createQuadGregoryControlPointVertexBuffer() const
 {
 	return createControlPointBuffer(GL_ARRAY_BUFFER, m_quadPatches.gregoryControlPoints, m_quadPatchCount, 20);
 }
+
 GLuint BzrFile::createQuadPmControlPointVertexBuffer() const
 {
 	return createControlPointBuffer(GL_ARRAY_BUFFER, m_quadPatches.pmControlPoints, m_quadPatchCount, 24);
 }
-GLuint BzrFile::createQuadTexCoordVertexBuffer() const
+
+GLuint BzrFile::createQuadBezierTexCoordVertexBuffer()
 {
-	return createControlPointTexBuffer(GL_ARRAY_BUFFER, m_quadPatches.texcoords, m_quadPatchCount, 16);
+	glm::vec2* tmp = new glm::vec2[m_quadPatchCount * 32];
+	
+	for (unsigned int i = 0; i < m_quadPatchCount; i += 1)
+	{
+		for (unsigned int j = 0; j < 32; j += 1)
+		{
+			if (j < 16)
+			{
+				tmp[i * 32 + j] = m_quadPatches.texcoords[i * 16 + j];
+			}
+			else
+			{
+				tmp[i * 32 + j] = glm::vec2(0.0f);
+			}
+		}
+	}
+	delete m_quadPatches.texcoords;
+	m_quadPatches.texcoords = tmp;
+	return createControlPointTexBuffer(GL_ARRAY_BUFFER, m_quadPatches.texcoords, m_quadPatchCount, 32);
+}
+
+GLuint BzrFile::createQuadGregoryTexCoordVertexBuffer()
+{
+	glm::vec2* tmp = new glm::vec2[m_quadPatchCount * 20];
+	
+	for (unsigned int i = 0; i < m_quadPatchCount; i += 1)
+	{
+		for (unsigned int j = 0; j < 20; j += 1)
+		{
+			if (j < 16)
+			{
+				tmp[i * 20 + j] = m_quadPatches.texcoords[i * 16 + j];
+			}
+			else
+			{
+				tmp[i * 20 + j] = glm::vec2(0.0f);
+			}
+		}
+	}
+	delete m_quadPatches.texcoords;
+	m_quadPatches.texcoords = tmp;
+	return createControlPointTexBuffer(GL_ARRAY_BUFFER, m_quadPatches.texcoords, m_quadPatchCount, 20);
+}
+
+GLuint BzrFile::createQuadPmTexCoordVertexBuffer()
+{
+	glm::vec2* tmp = new glm::vec2[m_quadPatchCount * 24];
+	
+	for (unsigned int i = 0; i < m_quadPatchCount; i += 1)
+	{
+		for (unsigned int j = 0; j < 24; j += 1)
+		{
+			if (j < 16)
+			{
+				tmp[i * 24 + j] = m_quadPatches.texcoords[i * 16 + j];
+			}
+			else
+			{
+				tmp[i * 24 + j] = glm::vec2(0.0f);
+			}
+		}
+	}
+	delete m_quadPatches.texcoords;
+	m_quadPatches.texcoords = tmp;
+	return createControlPointTexBuffer(GL_ARRAY_BUFFER, m_quadPatches.texcoords, m_quadPatchCount, 24);
 }
 
 GLuint BzrFile::createTriangleGregoryControlPointVertexBuffer() const
 {
 	return createControlPointBuffer(GL_ARRAY_BUFFER, m_triPatches.gregoryControlPoints, m_triPatchCount, 15);
 }
+
 GLuint BzrFile::createTrianglePmControlPointVertexBuffer() const
 {
 	return createControlPointBuffer(GL_ARRAY_BUFFER, m_triPatches.pmControlPoints, m_triPatchCount, 19);
 }
-GLuint BzrFile::createTriangleTexCoordVertexBuffer() const
+
+GLuint BzrFile::createTriangleGregoryTexCoordVertexBuffer()
 {
-	return createControlPointTexBuffer(GL_ARRAY_BUFFER, m_triPatches.texcoords, m_triPatchCount, 12);
+	glm::vec2* tmp = new glm::vec2[m_triPatchCount * 15];
+	
+	for (unsigned int i = 0; i < m_triPatchCount; i += 1)
+	{
+		for (unsigned int j = 0; j < 15; j += 1)
+		{
+			if (j < 12)
+			{
+				tmp[i * 15 + j] = m_triPatches.texcoords[i * 12 + j];
+			}
+			else
+			{
+				tmp[i * 15 + j] = glm::vec2(0.0f);
+			}
+		}
+	}
+	delete m_triPatches.texcoords;
+	m_triPatches.texcoords = tmp;
+	return createControlPointTexBuffer(GL_ARRAY_BUFFER, m_triPatches.texcoords, m_triPatchCount, 15);
+}
+
+GLuint BzrFile::createTrianglePmTexCoordVertexBuffer()
+{
+	glm::vec2* tmp = new glm::vec2[m_triPatchCount * 19];
+	
+	for (unsigned int i = 0; i < m_triPatchCount; i += 1)
+	{
+		for (unsigned int j = 0; j < 19; j += 1)
+		{
+			if (j < 19)
+			{
+				tmp[i * 19 + j] = m_triPatches.texcoords[i * 12 + j];
+			}
+			else
+			{
+				tmp[i * 19 + j] = glm::vec2(0.0f);
+			}
+		}
+	}
+	delete m_triPatches.texcoords;
+	m_triPatches.texcoords = tmp;
+	return createControlPointTexBuffer(GL_ARRAY_BUFFER, m_triPatches.texcoords, m_triPatchCount, 19);
 }
 

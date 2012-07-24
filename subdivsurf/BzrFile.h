@@ -82,10 +82,15 @@ public:
 	GLuint createQuadGregoryControlPointVertexBuffer() const;
 	GLuint createQuadPmControlPointVertexBuffer() const;
 	GLuint createQuadTexCoordVertexBuffer() const;
+	GLuint createQuadBezierTexCoordVertexBuffer();
+	GLuint createQuadGregoryTexCoordVertexBuffer();
+	GLuint createQuadPmTexCoordVertexBuffer();
 
 	GLuint createTriangleGregoryControlPointVertexBuffer() const;
 	GLuint createTrianglePmControlPointVertexBuffer() const;
 	GLuint createTriangleTexCoordVertexBuffer() const;
+	GLuint createTriangleGregoryTexCoordVertexBuffer();
+	GLuint createTrianglePmTexCoordVertexBuffer();
 
 
 //private:

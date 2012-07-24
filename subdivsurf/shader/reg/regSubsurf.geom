@@ -3,42 +3,55 @@
 layout(triangles, invocations = 1) in;
 layout(triangle_strip, max_vertices = 4) out;
 
+
 uniform sampler2D displacementMap;
 
-in vec4 teColor[];
-in vec4 tePosition[];
-in vec2 teTexCoord[];
+uniform mat4 MVP;
+uniform mat4 MV;
+uniform mat4 normalMatrix;
+
+uniform float displacementScale;
+
+precise in vec2 teTexCoord[];
+precise in vec2 teSTexCoord[];
+in vec4 teNormal[];
 
 
-out vec4 gColor;
-out vec4 gPosition;
-out vec2 gTexCoord;
+precise out vec4 gPosition;
+precise out vec2 gTexCoord;
 out vec3 gGridDistance;
-//out vec3 gNormal;
+out vec4 gNormal;
+out vec3 gNormalFlat;
+
+precise gl_Position;
 
 void main()
 {	
-	gColor = teColor[0];
+	gNormalFlat = normalize(normalMatrix * 
+	              vec4(cross(gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz, 
+	                         gl_in[2].gl_Position.xyz - gl_in[0].gl_Position.xyz), 0.0)).xyz;
+	
 	gTexCoord = teTexCoord[0];
-	gl_Position = gl_in[0].gl_Position;
-//	gl_Position = gl_in[0].gl_Position + texture(displacementMap, gTexCoord);
-	gPosition = tePosition[0];
+//	gl_Position = gl_in[0].gl_Position;
+	gl_Position = MVP * (gl_in[0].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[0]).xyz, 0.0));
+	gPosition = MV * (gl_in[0].gl_Position + displacementScale * vec4(texture(displacementMap, gTexCoord).xyz, 0.0));
+	gNormal = normalize(normalMatrix * teNormal[0]);
 	gGridDistance = vec3(1.0, 0.0, 0.0);
 	EmitVertex();
 
-	gColor = teColor[1];
 	gTexCoord = teTexCoord[1];
-	gl_Position = gl_in[1].gl_Position;
-//	gl_Position = gl_in[1].gl_Position + texture(displacementMap, gTexCoord);
-	gPosition = tePosition[1];
+//	gl_Position = gl_in[1].gl_Position;
+	gl_Position = MVP * (gl_in[1].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[1]).xyz, 0.0));
+	gPosition = MV * (gl_in[1].gl_Position + displacementScale * vec4(texture(displacementMap, gTexCoord).xyz, 0.0));
+	gNormal = normalize(normalMatrix * teNormal[1]);
 	gGridDistance = vec3(0.0, 1.0, 0.0);
 	EmitVertex();
 	
-	gColor = teColor[2];
 	gTexCoord = teTexCoord[2];
-	gl_Position = gl_in[2].gl_Position;
-//	gl_Position = gl_in[2].gl_Position + texture(displacementMap, gTexCoord);
-	gPosition = tePosition[2];
+//	gl_Position = gl_in[2].gl_Position;
+	gl_Position = MVP * (gl_in[2].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[2]).xyz, 0.0));
+	gPosition = MV * (gl_in[2].gl_Position + displacementScale * vec4(texture(displacementMap, gTexCoord).xyz, 0.0));
+	gNormal = normalize(normalMatrix * teNormal[2]);
 	gGridDistance = vec3(0.0, 0.0, 1.0);
 	EmitVertex();
 	EndPrimitive();

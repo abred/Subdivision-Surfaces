@@ -21,7 +21,7 @@ vec4 interpolate(in vec4 v0, in vec4 v1, in vec4 v2, in vec4 v3)
 	return mix(a, b, gl_TessCoord.y);
 }
 
-vec2 interpolate2(in vec2 v0, in vec2 v1, in vec2 v2, in vec2 v3)
+vec2 interpolate(in vec2 v0, in vec2 v1, in vec2 v2, in vec2 v3)
 {
 	vec2 a = mix(v0, v1, gl_TessCoord.x);
 	vec2 b = mix(v3, v2, gl_TessCoord.x);
@@ -32,6 +32,6 @@ void main()
 {	
 	gl_Position = interpolate(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_in[2].gl_Position, gl_in[3].gl_Position);
 	teColor = interpolate(tcColor[0], tcColor[1], tcColor[2], tcColor[3]);
-	teTexCoord = interpolate2(tcTexCoord[0], tcTexCoord[1], tcTexCoord[2], tcTexCoord[3]);
+	teTexCoord = interpolate(tcTexCoord[0], tcTexCoord[1], tcTexCoord[2], tcTexCoord[3]);
 }
 

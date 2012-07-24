@@ -29,8 +29,10 @@ void main()
 	}
 	else
 	{
-//		FragColor = vec4(texture(normalMap, gTexCoord).xyz, 1.0);
-		FragColor = vec4(gTexCoord, 0.0, 1.0);
+		vec2 tex = vec2(gTexCoord.x, 1-gTexCoord.y);
+		FragColor = 50 * vec4(texture(displacementMap, tex).rgba);
+//		FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+//		FragColor = vec4(gTexCoord, 0.0, 1.0);
 	}
 }
 

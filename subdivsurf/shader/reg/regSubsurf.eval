@@ -2,38 +2,192 @@
 
 layout(quads, equal_spacing, ccw) in;
 
+precise in vec2 tcTexCoord[];
 
-uniform mat4 MVP;
-uniform mat4 MV;
+precise out vec2 teTexCoord;
+precise out vec2 teSTexCoord;
+out vec4 teNormal;
 
-in vec4 tcColor[];
-in vec2 tcTexCoord[];
+precise gl_Position;
 
-
-out vec4 teColor;
-out vec4 tePosition;
-out vec2 teTexCoord;
-
-vec4 interpolate(in vec4 v0, in vec4 v1, in vec4 v2, in vec4 v3)
+void deCasteljau(in float t, in vec3 p0, in vec3 p1, in vec3 p2, in vec3 p3, precise out vec3 p)
 {
-	vec4 a = mix(v0, v1, gl_TessCoord.x);
-	vec4 b = mix(v3, v2, gl_TessCoord.x);
-	return mix(a, b, gl_TessCoord.y);
+	precise vec3 q0 = mix(p0, p1, t);
+	precise vec3 q1 = mix(p1, p2, t);
+	precise vec3 q2 = mix(p2, p3, t);
+	precise vec3 r0 = mix(q0, q1, t);
+	precise vec3 r1 = mix(q1, q2, t);
+
+	p = mix(r0, r1, t);
 }
 
-vec2 interpolate2(in vec2 v0, in vec2 v1, in vec2 v2, in vec2 v3)
+void deCasteljau(in float u, in vec3 p0, in vec3 p1, in vec3 p2, in vec3 p3, precise out vec3 p, precise out vec3 dp)
 {
-	vec2 a = mix(v0, v1, gl_TessCoord.x);
-	vec2 b = mix(v3, v2, gl_TessCoord.x);
-	return mix(a, b, gl_TessCoord.y);
+	precise vec3 q0 = mix(p0, p1, u);
+	precise vec3 q1 = mix(p1, p2, u);
+	precise vec3 q2 = mix(p2, p3, u);
+	precise vec3 r0 = mix(q0, q1, u);
+	precise vec3 r1 = mix(q1, q2, u);
+
+	dp = r0 - r1;
+	p = mix(r0, r1, u);
 }
 
+void evaluateBezier(precise out vec4 pos, precise out vec4 norm)
+{
+	vec2 uv = gl_TessCoord.xy;
+	
+	precise vec3 t0, t1, t2, t3;
+	precise vec3 p0, p1, p2, p3;
+
+	deCasteljau(uv.x, gl_in[ 0].gl_Position.xyz, 
+	                  gl_in[ 1].gl_Position.xyz, 
+	                  gl_in[ 2].gl_Position.xyz, 
+	                  gl_in[ 3].gl_Position.xyz, p0, t0);
+	deCasteljau(uv.x, gl_in[ 4].gl_Position.xyz, 
+	                  gl_in[ 5].gl_Position.xyz, 
+	                  gl_in[ 6].gl_Position.xyz, 
+	                  gl_in[ 7].gl_Position.xyz, p1, t1);
+	deCasteljau(uv.x, gl_in[ 8].gl_Position.xyz, 
+	                  gl_in[ 9].gl_Position.xyz, 
+	                  gl_in[10].gl_Position.xyz, 
+	                  gl_in[11].gl_Position.xyz, p2, t2);
+	deCasteljau(uv.x, gl_in[12].gl_Position.xyz, 
+	                  gl_in[13].gl_Position.xyz, 
+	                  gl_in[14].gl_Position.xyz, 
+	                  gl_in[15].gl_Position.xyz, p3, t3);
+
+	vec3 du, dv;
+	vec3 posTmp;
+	deCasteljau(uv.y, p0, p1, p2, p3, posTmp, dv);
+	deCasteljau(uv.y, t0, t1, t2, t3, du);
+
+	pos = vec4(posTmp, 1.0);
+	norm = vec4((normalize(cross(du, dv))), 0.0);
+}
+
+//// Surface evaluation
+//vec4 evaluateBezierPosition()
+//{
+//	vec2 uv = gl_TessCoord.xy;
+//	
+//	vec2 B0 =       (1.0 - uv) * (1.0 - uv) * (1.0 - uv);
+//	vec2 B1 = 3.0 * (1.0 - uv) * (1.0 - uv) * (      uv);
+//	vec2 B2 = 3.0 * (      uv) * (      uv) * (1.0 - uv);
+//	vec2 B3 =       (   uv) * (         uv) * (      uv);
+
+//	vec3 w0 = (B0.x * gl_in[ 0].gl_Position.xyz + 
+//			   B1.x * gl_in[ 1].gl_Position.xyz + 
+//			   B2.x * gl_in[ 2].gl_Position.xyz + 
+//			   B3.x * gl_in[ 3].gl_Position.xyz)   * B0.y;
+//	vec3 w1 = (B0.x * gl_in[ 4].gl_Position.xyz + 
+//			   B1.x * gl_in[ 5].gl_Position.xyz + 
+//			   B2.x * gl_in[ 6].gl_Position.xyz + 
+//			   B3.x * gl_in[ 7].gl_Position.xyz)   * B1.y;
+//	vec3 w2 = (B0.x * gl_in[ 8].gl_Position.xyz + 
+//			   B1.x * gl_in[ 9].gl_Position.xyz + 
+//			   B2.x * gl_in[10].gl_Position.xyz + 
+//			   B3.x * gl_in[11].gl_Position.xyz)   * B2.y;
+//	vec3 w3 = (B0.x * gl_in[12].gl_Position.xyz + 
+//			   B1.x * gl_in[13].gl_Position.xyz + 
+//			   B2.x * gl_in[14].gl_Position.xyz + 
+//			   B3.x * gl_in[15].gl_Position.xyz)   * B3.y;
+
+//	return vec4((w0 + w1 + w2 + w3), 1.0);
+//}
+
+//// evaluate normal using only position control points.
+//vec4 evaluateBezierNormal()
+//{
+//	vec2 uv = gl_TessCoord.xy;
+//	vec2 T0 =       (1.0 - uv) * (1.0 - uv);
+//	vec2 T1 = 2.0 * (1.0 - uv) * (      uv);
+//	vec2 T2 =       (      uv) * (      uv);
+
+//	vec2 B0 =       (1.0 - uv) * (1.0 - uv) * (1.0 - uv);
+//	vec2 B1 = 3.0 * (1.0 - uv) * (1.0 - uv) * (      uv);
+//	vec2 B2 = 3.0 * (      uv) * (      uv) * (1.0 - uv);
+//	vec2 B3 =       (      uv) * (      uv) * (      uv);
+
+//	vec3 pu[12];
+//	vec3 pv[12];
+
+//	for (int i = 0; i < 4; i++)
+//	{
+//		pu[i+0] = 3.0 * (gl_in[4*i + 1].gl_Position.xyz - gl_in[4*i + 0].gl_Position.xyz);
+//		pv[i+0] = 3.0 * (gl_in[4*1 + i].gl_Position.xyz - gl_in[4*0 + i].gl_Position.xyz);
+
+//		pu[i+4] = 3.0 * (gl_in[4*i + 2].gl_Position.xyz - gl_in[4*i + 1].gl_Position.xyz);
+//		pv[i+4] = 3.0 * (gl_in[4*2 + i].gl_Position.xyz - gl_in[4*1 + i].gl_Position.xyz);
+
+//		pu[i+8] = 3.0 * (gl_in[4*i + 3].gl_Position.xyz - gl_in[4*i + 2].gl_Position.xyz);
+//		pv[i+8] = 3.0 * (gl_in[4*3 + i].gl_Position.xyz - gl_in[4*2 + i].gl_Position.xyz);
+//	}
+
+//	vec3 du = (B0.y * pu[ 0] + B1.y * pu[ 1] + 
+//			   B2.y * pu[ 2] + B3.y * pu[ 3]) * T0.x +
+//			  (B0.y * pu[ 4] + B1.y * pu[ 5] + 
+//			   B2.y * pu[ 6] + B3.y * pu[ 7]) * T1.x +
+//			  (B0.y * pu[ 8] + B1.y * pu[ 9] + 
+//			   B2.y * pu[10] + B3.y * pu[11]) * T2.x;
+
+//	vec3 dv = (B0.x * pv[ 0] + B1.x * pv[ 1] + 
+//			   B2.x * pv[ 2] + B3.x * pv[ 3]) * T0.y +
+//			  (B0.x * pv[ 4] + B1.x * pv[ 5] + 
+//			   B2.x * pv[ 6] + B3.x * pv[ 7]) * T1.y +
+//			  (B0.x * pv[ 8] + B1.x * pv[ 9] + 
+//			   B2.x * pv[10] + B3.x * pv[11]) * T2.y;
+
+//	return vec4((normalize(cross(du, dv))), 0.0);
+//}
+
+precise vec2 evaluateSeamlessTexCoord()
+{
+	vec2 uv = gl_TessCoord.xy;
+	vec2 L0 = (1.0 - uv);
+	vec2 L1 = (      uv);
+
+	precise vec2 t = (L0.x * tcTexCoord[ 0] + L1.x * tcTexCoord[4]) * L0.y + 
+	         (L0.x * tcTexCoord[12] + L1.x * tcTexCoord[8]) * L1.y;
+
+	// Boundaries
+	if (uv.y <= 0.00001) t = tcTexCoord[ 0 + 1] * L0.x + tcTexCoord[ 4 + 2] * L1.x;
+	if (uv.y >= 0.99999) t = tcTexCoord[12 + 2] * L0.x + tcTexCoord[ 8 + 1] * L1.x;
+	if (uv.x <= 0.00001) t = tcTexCoord[ 0 + 2] * L0.y + tcTexCoord[12 + 1] * L1.y;
+	if (uv.x >= 0.99999) t = tcTexCoord[ 4 + 1] * L0.y + tcTexCoord[ 8 + 2] * L1.y;
+
+	// Corners
+	if (uv.x <= 0.00001 && uv.y <= 0.00001) t = tcTexCoord[ 0 + 3];
+	if (uv.x >= 0.99999 && uv.y <= 0.00001) t = tcTexCoord[ 4 + 3];
+	if (uv.x >= 0.99999 && uv.y >= 0.99999) t = tcTexCoord[ 8 + 3];
+	if (uv.x <= 0.00001 && uv.y >= 0.99999) t = tcTexCoord[12 + 3];
+
+	return t;
+}
+
+precise vec2 evaluateTexCoord()
+{
+	float u = gl_TessCoord.x;
+	float v = gl_TessCoord.y;
+//correct??
+	return ((1.0 - u) * tcTexCoord[ 0] + u * tcTexCoord[4]) * (1.0 - v) + 
+	       ((1.0 - u) * tcTexCoord[12] + u * tcTexCoord[8]) * (      v);
+
+}
 
 void main()
 {
-	vec4 tmp = interpolate(gl_in[0].gl_Position, gl_in[3].gl_Position, gl_in[15].gl_Position, gl_in[12].gl_Position);
-	gl_Position = MVP * tmp;
-	tePosition = MV * tmp;
-	teColor = interpolate(tcColor[0], tcColor[3], tcColor[12], tcColor[15]);
-	teTexCoord = interpolate2(tcTexCoord[0], tcTexCoord[3], tcTexCoord[12], tcTexCoord[15]);
+//	vec4 pos = evaluateBezierPosition();
+	
+	precise vec4 pos;
+	precise vec4 norm;
+	evaluateBezier(pos, norm);
+	gl_Position = pos;
+
+	teTexCoord = evaluateTexCoord();
+	teSTexCoord = evaluateSeamlessTexCoord();
+	teNormal = norm;
 }
+
+
+

@@ -1,76 +1,89 @@
 #version 400
 
 uniform sampler2D occlusionMap;
+uniform sampler2D smoothOcclusionMap;
 uniform sampler2D normalMap;
 uniform sampler2D displacementMap;
 
 uniform mat4 normalMatrix;
 
-uniform vec3 lightPosition;
+uniform vec4 lightPosition;
 uniform vec3 diffuseMaterial;
 uniform vec3 ambientMaterial;
 uniform vec3 specularMaterial;
 uniform float shininess;
+uniform bool drawLines;
+uniform bool shading;
+uniform bool color3;
+uniform float displacementScale;
 
-
-in vec4 gColor;
 in vec4 gPosition;
 in vec3 gGridDistance;
 in vec2 gTexCoord;
-//in vec3 gNormal;
-//in vec3 gTriDistance;
-//in vec4 gPatchDistance;
+in vec4 gNormal;
+in vec3 gNormalFlat;
 
 
-const vec4 InnerLineColor = vec4(1, 1, 1, 1);
-const bool DrawLines = true;
+const vec4 lineColor = vec4(1.0, 1.0, 1.0, 1.0);
 
 
 layout(location = 0, index = 0) out vec4 FragColor;
 
 
-//float amplify(float d, float scale, float offset)
-//{
-//	d = scale * d + offset;
-//	d = clamp(d, 0, 1);
-//	d = 1 - exp2(-2*d*d);
-//	return d;
-//}
-
 
 void main()
 {
-//	vec3 N = normalize(normalMatrix * texture(normalMap, gTexCoord));
-//	vec3 L = lightPosition;
-//	vec3 E = vec3(0, 0, 1);
-//	vec3 H = normalize(L + E);
-
-//	float df = abs(dot(N, L));
-//	float sf = abs(dot(N, H));
-//	sf = pow(sf, shininess);
-//	vec3 color = ambientMaterial + df * diffuseMaterial + sf * specularMaterial;
-
-	if (DrawLines) 
+	vec4 color;
+	if(color3)
 	{
-		float d1 = min(min(gGridDistance.x, gGridDistance.y), gGridDistance.z);
-//		float d2 = min(min(min(gPatchDistance.x, gPatchDistance.y), gPatchDistance.z), gPatchDistance.w);
-//		d1 = 1 - amplify(d1, 50, -0.5);
-//		d2 = amplify(d2, 50, -0.5);
-//		color = d2 * color + d1 * d2 * InnerLineColor;
-		if (d1 <= 0.01)
+		color = vec4(0.7, 0.25, 0.1, 1.0);
+	}
+	else
+	{
+		color = vec4(0.5, 0.35, 0.3, 1.0);
+	}
+	
+	vec4 normalTmp = vec4(2.0 * texture(normalMap, gTexCoord + 0.5f/2048).xyz -1.0, 0.0);
+	vec4 normal = normalize(normalMatrix * normalTmp); 
+	normal = mix(gNormal, normal, displacementScale);
+	
+	float occlusion = texture(occlusionMap, gTexCoord).x;
+	float smoothOcclusion = texture(smoothOcclusionMap, gTexCoord).x;
+	occlusion = mix(smoothOcclusion, occlusion, displacementScale);
+	
+	if(!shading)
+	{
+		normal = vec4(gNormalFlat, 0.0);
+		occlusion = 1.0;
+	}
+	
+	vec4 lightVec = normalize(lightPosition - gPosition);
+	vec4 ref = reflect(-lightVec, normal);
+	vec4 pos = normalize(-gPosition);
+	
+	if (drawLines)
+	{
+		float d = min(min(gGridDistance.x, gGridDistance.y), gGridDistance.z);
+
+		if (d <= 0.01)
 		{
-			FragColor = InnerLineColor;
+			FragColor = lineColor;
 		}
 		else
 		{
-//			FragColor = vec4(texture(normalMap, gTexCoord).xyz, 1.0);
-			FragColor = vec4(gTexCoord, 0.0, 1.0);
+//			FragColor = ambientMaterial + 
+//			            diffuseMaterial * max(dot(lightVec, normal), 0.0) + 
+//			            specularMaterial * pow(max(dot(ref, xxx), 0.0), shininess);
+			FragColor = color * 0.2 + occlusion * 
+			           (color * max(dot(lightVec, normal), 0.0) + 
+			            0.3 * pow(max(dot(ref, pos), 0.0), shininess));
 		}
 	}
 	else
 	{
-		FragColor = vec4(texture(normalMap, gTexCoord).xyz, 1.0);
-//		FragColor = texture(occlusionMap, gTexCoord);
+			FragColor = color * 0.2 + occlusion * 
+			           (color * max(dot(lightVec, normal), 0.0) + 
+			            0.3 * pow(max(dot(ref, pos), 0.0), shininess));
 	}
 }
 

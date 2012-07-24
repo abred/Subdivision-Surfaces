@@ -86,12 +86,21 @@ class OpenGLQtContext : public QGLWidget
 		BzrFile*  	mesh_;
 		
 		GLuint    	occlusionMap_;
+		GLuint    	smoothOcclusionMap_;
 		GLuint    	normalMap_;
 		GLuint    	displacementMap_;
 		GLuint    	refPosMap_;
 		GLuint    	refNormalMap_;
 		
 		GLuint    	next_ = 0;
+		bool		wireframe_ = false;
+		bool      	shading_ = true;
+		bool      	color_ = false;
+		float     	displacement_ = 0.0f;
+		float     	tessLevel_ = 16.0f;
+		bool      	seamlessTex_ = false;
+		
+		glm::vec4 	lightPos_ = glm::vec4(10.0f,25.0f, 50.0f, 1.0f);
 		
 
 //	public slots:
