@@ -1,0 +1,8 @@
+Keys:
+
+d -> increase displacement scale [0, 0.1, 0.2 .. 1]
+t -> increase tesselation level
+y -> decrease tesselation level
+w -> show triangle wireframe
+c -> show regular, quad and triangle patches in different colors
+n -> show base mesh

@@ -74,14 +74,14 @@ void main()
 //			FragColor = ambientMaterial + 
 //			            diffuseMaterial * max(dot(lightVec, normal), 0.0) + 
 //			            specularMaterial * pow(max(dot(ref, xxx), 0.0), shininess);
-			FragColor = color * 0.2 + occlusion * 
+			FragColor = color * 0.3 + occlusion * 
 			           (color * max(dot(lightVec, normal), 0.0) + 
 			            0.3 * pow(max(dot(ref, pos), 0.0), shininess));
 		}
 	}
 	else
 	{
-			FragColor = color * 0.2 + occlusion * 
+			FragColor = color * 0.3 + occlusion * 
 			           (color * max(dot(lightVec, normal), 0.0) + 
 			            0.3 * pow(max(dot(ref, pos), 0.0), shininess));
 	}
