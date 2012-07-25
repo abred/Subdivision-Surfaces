@@ -33,7 +33,7 @@ void main()
 	
 	gTexCoord = teTexCoord[0];
 //	gl_Position = gl_in[0].gl_Position;
-	gl_Position = MVP * (gl_in[0].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[0] + 0.5/1024).xyz, 0.0));
+	gl_Position = MVP * (gl_in[0].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[0] + 0.5/1024.0).xyz, 0.0));
 	gPosition = MV * (gl_in[0].gl_Position + displacementScale * vec4(texture(displacementMap, gTexCoord).xyz, 0.0));
 	gNormal = normalize(normalMatrix * teNormal[0]);
 	gGridDistance = vec3(1.0, 0.0, 0.0);
@@ -41,7 +41,7 @@ void main()
 
 	gTexCoord = teTexCoord[1];
 //	gl_Position = gl_in[1].gl_Position;
-	gl_Position = MVP * (gl_in[1].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[1] + 0.5/1024).xyz, 0.0));
+	gl_Position = MVP * (gl_in[1].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[1] + 0.5/1024.0).xyz, 0.0));
 	gPosition = MV * (gl_in[1].gl_Position + displacementScale * vec4(texture(displacementMap, gTexCoord).xyz, 0.0));
 	gNormal = normalize(normalMatrix * teNormal[1]);
 	gGridDistance = vec3(0.0, 1.0, 0.0);
@@ -49,7 +49,7 @@ void main()
 	
 	gTexCoord = teTexCoord[2];
 //	gl_Position = gl_in[2].gl_Position;
-	gl_Position = MVP * (gl_in[2].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[2] + 0.5/1024).xyz, 0.0));
+	gl_Position = MVP * (gl_in[2].gl_Position + displacementScale * vec4(texture(displacementMap, teSTexCoord[2] + 0.5/1024.0).xyz, 0.0));
 	gPosition = MV * (gl_in[2].gl_Position + displacementScale * vec4(texture(displacementMap, gTexCoord).xyz, 0.0));
 	gNormal = normalize(normalMatrix * teNormal[2]);
 	gGridDistance = vec3(0.0, 0.0, 1.0);

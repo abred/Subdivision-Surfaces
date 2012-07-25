@@ -93,8 +93,8 @@ precise vec2 seamlessTriangleTexcoordLerp()
 	// Barycentric coordinates
 	float u = gl_TessCoord.x; 
 	float v = gl_TessCoord.y; 
-//	float w = gl_TessCoord.z; 
-	float w = 1 - u - v;
+	float w = gl_TessCoord.z; 
+//	float w = 1 - u - v;
 
 	vec2 textureCoordinates[12];
 	

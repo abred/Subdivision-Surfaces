@@ -43,12 +43,12 @@ void main()
 		color = vec4(0.5, 0.35, 0.3, 1.0);
 	}
 	
-	vec4 normalTmp = vec4(2.0 * texture(normalMap, gTexCoord).xyz -1.0, 0.0);
+	vec4 normalTmp = vec4(2.0 * texture(normalMap, gTexCoord + 0.5/2048.0).xyz -1.0, 0.0);
 	vec4 normal = normalize(normalMatrix * normalTmp); 
 	normal = mix(gNormal, normal, displacementScale);
 	
-	float occlusion = texture(occlusionMap, gTexCoord).x;
-	float smoothOcclusion = texture(smoothOcclusionMap, gTexCoord).x;
+	float occlusion = texture(occlusionMap, gTexCoord + 0.5/1024.0).x;
+	float smoothOcclusion = texture(smoothOcclusionMap, gTexCoord + 0.5/512.0).x;
 	occlusion = mix(smoothOcclusion, occlusion, displacementScale);
 	
 	if(!shading)

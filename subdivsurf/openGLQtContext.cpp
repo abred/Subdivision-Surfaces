@@ -248,7 +248,15 @@ void OpenGLQtContext::initStuff()
 //			std::cout << std::endl;
 //		}
 	}
-
+	for (unsigned int i = 0; i < 251*16; i += 1)
+	{
+		std::cout << mesh_->m_quadPatches.texcoords[i].x << " " << mesh_->m_quadPatches.texcoords[i].y << "\n";
+		if (i % 16 == 15)
+		{
+			std::cout << std::endl;
+		}
+	}
+	
 	ilInit();
 	GLuint texTmp;
 	ilGenImages(1, &texTmp);
